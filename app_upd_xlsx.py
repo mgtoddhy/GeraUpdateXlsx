@@ -1,62 +1,62 @@
-importar iluminado por riachos como st
-importar pandas como pd
+import streamlit as st
+import pandas as pd
 
-# Configuração da página do Streamlit
-São.definir_página_config(página_título="Central de Utilitários", layout="largo")
+# Configuracao da pagina do Streamlit
+st.set_page_config(page_title="Central de Utilitarios", layout="wide")
 
-# ----------------------------------------------------------------------
-# FUNCOS DE SUPORTE
-# ----------------------------------------------------------------------
-def formatar_valor_firebird(valor, forcar_string=Falso, é_dados=Falso, é_decimal=Falso):
-    """Formata os valores de acorde com os tipos aceitos no Firebird."""
-    se pd.isna(valentia):
-        retornar "NULO"
-    se é_dados e hasattr(valentia, "tempo de esforço"):
-        retornar f"'{valentia.tempo de strft('%Y-%m-%d')}'"
-    se forcar_string ou é instância(valor, str):
-        texto = str(valentia).substituir("'", "''")
-        retornar f"'{texto}'"
-    elif é instância(valor, bool):
-        retornar "1" se valentia outro "0"
-    elif é instância(valentia, (int, flutuador)):
-        se é_decimal:
-            retornar f"{valor:.2f}"
-        se é instância(valor, flutuar) e valentia.é_inteiro():
-            retornar str(int(valentia))
-        retornar str(valentia)
-    retornar f"'{str(valentia)}'"
+# -----------------------------------------------------------------------------
+# FUNCOES DE SUPORTE
+# -----------------------------------------------------------------------------
+def formatar_valor_firebird(valor, forcar_string=False, is_data=False, is_decimal=False):
+    """Formata os valores de acordo com os tipos aceitos no Firebird."""
+    if pd.isna(valor):
+        return "NULL"
+    if is_data and hasattr(valor, "strftime"):
+        return f"'{valor.strftime('%Y-%m-%d')}'"
+    if forcar_string or isinstance(valor, str):
+        texto = str(valor).replace("'", "''")
+        return f"'{texto}'"
+    elif isinstance(valor, bool):
+        return "1" if valor else "0"
+    elif isinstance(valor, (int, float)):
+        if is_decimal:
+            return f"{valor:.2f}"
+        if isinstance(valor, float) and valor.is_integer():
+            return str(int(valor))
+        return str(valor)
+    return f"'{str(valor)}'"
 
 def processar_linhas_sql(df, tabela, cols_set, cols_where, set_fixo, where_fixo, dicionario_tipos, cols_decimal=None):
-    """Executar a varredura das linhas do DataFrame para gerar ATUALIZAÇÕES."""
-    cols_data_auto = {c para c em df.colunas se pd.API.tipos.é_datahora64_qualquer_tipo de dados(df[c])}
+    """Executa a varredura das linhas do DataFrame para gerar UPDATEs."""
+    cols_data_auto = {c for c in df.columns if pd.api.types.is_datetime64_any_dtype(df[c])}
     scripts = []
-    para _, linha em df.linhas de iterro():
+    for _, linha in df.iterrows():
         partes_set = []
-        para cor em cols_set:
-            deve_string = dicas_dicionário.pegar(cor, Falso)
-            is_data = col em cols_data_auto
-            é_decimal = col em (cols_decimal ou [])
-            valor_fmt = formatar_valor_firebird(linha[cor], forcar_string=deve_string, is_data=is_data, is_decimal=is_decimal)
-            partes_conjunto.anexar(f"{cor} = {valor_fmt}")
+        for col in cols_set:
+            deve_string = dicionario_tipos.get(col, False)
+            is_data = col in cols_data_auto
+            is_decimal = col in (cols_decimal or [])
+            valor_fmt = formatar_valor_firebird(linha[col], forcar_string=deve_string, is_data=is_data, is_decimal=is_decimal)
+            partes_set.append(f"{col} = {valor_fmt}")
         
-        se conjunto_fixo e definir_fixo.tira() != "":
-            partes_conjunto.anexar(definir_fixo.tira())
+        if set_fixo and set_fixo.strip() != "":
+            partes_set.append(set_fixo.strip())
             
-        conjunto_cláusula = ", ".juntar(partes_conjunto)
+        clausula_set = ", ".join(partes_set)
         
-        partes_onde = []
-        para cor em cols_onde:
-            deve_string = dicas_dicionário.pegar(cor, Falso)
-            is_data = col em cols_data_auto
-            valor_fmt = formatar_valor_firebird(linha[cor], forcar_string=deve_string, is_data=is_data)
-            partes_onde.anexar(f"{cor} = {valor_fmt}")
+        partes_where = []
+        for col in cols_where:
+            deve_string = dicionario_tipos.get(col, False)
+            is_data = col in cols_data_auto
+            valor_fmt = formatar_valor_firebird(linha[col], forcar_string=deve_string, is_data=is_data)
+            partes_where.append(f"{col} = {valor_fmt}")
             
-        se onde_fixo e onde_fixo.tira() != "":
-            partes_onde.anexar(f"({onde_fixo.tira()})")
+        if where_fixo and where_fixo.strip() != "":
+            partes_where.append(f"({where_fixo.strip()})")
             
-        condicao_final = " E ".juntar(partes_onde)
+        condicao_final = " AND ".join(partes_where)
         
-        sql = f"ATUALIZAÇÃO {tabela} DEFINIR {conjunto_cláusula} ONDE {condicao_final};"
+        sql = f"UPDATE {tabela} SET {clausula_set} WHERE {condicao_final};"
         scripts.append(sql)
         
     return "\n".join(scripts)
@@ -279,9 +279,9 @@ elif opcao == "➕ Excel para Script SQL (INSERT)":
             df_filtrado = df_original[cols_inserir].renomear(colunas=mapeamento_colunas)
             colunas_finais_disponiveis = df_filtrado.colunas.listar()
 
-            São.escrivão("---")
+            São.escrever("---")
             São.legenda("📋 Prévia simplificada dos dados com cabeçalhos atualizados:")
-            São.quadro de dados(df_filtrado.caboça(3), usar_largura_do_contêiner=Verdadeiro)
+            São.quadro de dados(df_filtrado.cabeça(3), usar_largura_do_contêiner=Verdadeiro)
 
             São.divisor()
             São.subtítulo("⚙️ Etapa 3: Configurações do Script SQL")
@@ -301,11 +301,11 @@ elif opcao == "➕ Excel para Script SQL (INSERT)":
                     chave="txt_fixos_insert"
                 )
 
-            São.escrivão("---")
+            São.escrever("---")
             São.subtítulo("💰 Colunas monetárias")
-            cols_decimal_insert = st.multisseleção("Colunas DECIMAL (2 casas):", operações=colunas_finais_disponiveis, chave="decimal_insert")
+            cols_decimal_insert = st.multisseleção("Colunas DECIMAL (2 casas):", opções=colunas_finais_disponiveis, chave="inserção_decimal")
 
-            São.escrivão("---")
+            São.escrever("---")
             se São.botão("🚀 Gerar Script SQL para Firebird", tipo="primário", chave="btn_inserir"):
                 se não campos_fixos.tira() e cols_insert:
                     passar  # Campos fixos são opcionais
@@ -327,6 +327,6 @@ elif opcao == "➕ Excel para Script SQL (INSERT)":
                     rótulo="💾 Baixar arquivo .sql",
                     dados=script_final,
                     nome_arquivo="inserir_firebird.sql",
-                    mímica="texto/sql",
+                    mimica="texto/sql",
                     chave="dl_inserir"
                 )
