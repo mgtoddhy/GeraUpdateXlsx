@@ -276,57 +276,57 @@ elif opcao == "➕ Excel para Script SQL (INSERT)":
                     forcar = st.checkbox("Forçar como String (Texto)", key=f"s_ins_{col_original}")
                     colunas_forcar_string[nome_banco] = forcar
 
-            df_filtrado = df_original[cols_inserir].renomear(colunas=mapeamento_colunas)
-            colunas_finais_disponiveis = df_filtrado.colunas.listar()
+            df_filtrado = df_original[cols_insert].rename(columns=mapeamento_colunas)
+            colunas_finais_disponiveis = df_filtrado.columns.tolist()
 
-            São.escrever("---")
-            São.legenda("📋 Prévia simplificada dos dados com cabeçalhos atualizados:")
-            São.quadro de dados(df_filtrado.cabeça(3), usar_largura_do_contêiner=Verdadeiro)
+            st.write("---")
+            st.caption("📋 Prévia simplificada dos dados com cabeçalhos atualizados:")
+            st.dataframe(df_filtrado.head(3), use_container_width=True)
 
-            São.divisor()
-            São.subtítulo("⚙️ Etapa 3: Configurações do Script SQL")
+            st.divider()
+            st.subheader("⚙️ Etapa 3: Configurações do Script SQL")
 
-            col_tab, col_fixos = st.colunas([1, 1,5])
+            col_tab, col_fixos = st.columns([1, 1.5])
 
-            com col_tab:
-                São.redução("**📋 Nome da Mesa**")
-                nome_tabela = st.entrada_texto("Tabela destino:", valor="MINHA_TABELA", chave="tab_insert").superior()
+            with col_tab:
+                st.markdown("**📋 Nome da Tabela**")
+                nome_tabela = st.text_input("Tabela destino:", value="MINHA_TABELA", key="tab_insert").upper()
 
-            com col_fixos:
-                São.redução("**⚡ Campos Fixos Adicionais (Opcional)**")
-             ## st.info("Formato: CAMPO1 = VALOR1, CAMPO2 = VALOR2")
-                campos_fixos = st.entrada_texto(
+            with col_fixos:
+                st.markdown("**⚡ Campos Fixos Adicionais (Opcional)**")
+             ##   st.info("Formato: CAMPO1 = VALOR1, CAMPO2 = VALOR2")
+                campos_fixos = st.text_input(
                     "Campos fixos:", 
-                    espaço reservado="ID_STATUS = 'A', DATA_CRIACAO = AGORA",
-                    chave="txt_fixos_insert"
+                    placeholder="ID_STATUS = 'A', DATA_CRIACAO = NOW",
+                    key="txt_fixos_insert"
                 )
 
-            São.escrever("---")
-            São.subtítulo("💰 Colunas monetárias")
-            cols_decimal_insert = st.multisseleção("Colunas DECIMAL (2 casas):", opções=colunas_finais_disponiveis, chave="inserção_decimal")
+            st.write("---")
+            st.subheader("💰 Colunas monetárias")
+            cols_decimal_insert = st.multiselect("Colunas DECIMAL (2 casas):", options=colunas_finais_disponiveis, key="decimal_insert")
 
-            São.escrever("---")
-            se São.botão("🚀 Gerar Script SQL para Firebird", tipo="primário", chave="btn_inserir"):
-                se não campos_fixos.tira() e cols_insert:
-                    passar  # Campos fixos são opcionais
+            st.write("---")
+            if st.button("🚀 Gerar Script SQL para Firebird", type="primary", key="btn_insert"):
+                if not campos_fixos.strip() and cols_insert:
+                    pass  # Campos fixos são opcionais
                 
                 script_final = processar_linhas_insert_sql(
                     df=df_filtrado,
                     tabela=nome_tabela,
                     cols_insert=colunas_finais_disponiveis,
                     campos_fixos=campos_fixos,
-                    dicas_tipos=colunas_forcar_string,
-                    cols_decimal=cols_decimal_inserir
+                    dicionario_tipos=colunas_forcar_string,
+                    cols_decimal=cols_decimal_insert
                 )
 
-                São.divisor()
-                São.subtítulo("📝 Roteiro Gerado")
-                São.código(script_final, idioma="sql")
+                st.divider()
+                st.subheader("📝 Script Gerado")
+                st.code(script_final, language="sql")
                 
-                São.botão_download(
-                    rótulo="💾 Baixar arquivo .sql",
-                    dados=script_final,
-                    nome_arquivo="inserir_firebird.sql",
-                    mimica="texto/sql",
-                    chave="dl_inserir"
+                st.download_button(
+                    label="💾 Baixar arquivo .sql",
+                    data=script_final,
+                    file_name="insert_firebird.sql",
+                    mime="text/sql",
+                    key="dl_insert"
                 )
